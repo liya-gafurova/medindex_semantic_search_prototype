@@ -1,0 +1,13 @@
+version: '2'
+
+services:
+  db:
+    restart: always
+    image: ammaorg/aquiladb:latest
+    volumes:
+      - ./data:/data
+    ports:
+      - 50051:50051
+    environment:
+      - MIN_DOCS2INDEX=10
+      - FIXED_VEC_DIMENSION=7268
