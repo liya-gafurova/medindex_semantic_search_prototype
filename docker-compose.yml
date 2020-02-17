@@ -9,5 +9,5 @@ services:
     ports:
       - 50051:50051
     environment:
-      - MIN_DOCS2INDEX=10
+      - MIN_DOCS2INDEX=5
       - FIXED_VEC_DIMENSION=7268
