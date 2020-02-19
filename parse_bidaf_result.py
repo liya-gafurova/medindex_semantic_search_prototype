@@ -42,10 +42,10 @@ def locate_passage_with_answer(passage_tokens: list, best_span: list, splitter: 
     # gives positions of paragraph with answer (best_span)
     passage_positions = get_paragraph_positons(passage_tokens, splitter)
     for paragraph_pos in passage_positions:
-        if paragraph_pos[0] and best_span[1]<= paragraph_pos[1]  : # best_span[0] >= paragraph_pos[0] and best_span[1]<= paragraph_pos[1]
+        if paragraph_pos[0] and best_span[1]<= paragraph_pos[1] :
             return paragraph_pos
 
     raise Exception('best_span is NOT within one paragraph')
 
-paragraph_with_answer_position = locate_passage_with_answer(passage_tokens, best_span, '###')
+paragraph_with_answer_position = locate_passage_with_answer(passage_tokens=passage_tokens,best_span= best_span, splitter='###')
 print(' '.join(passage_tokens[paragraph_with_answer_position[0]:paragraph_with_answer_position[1]+1]))
