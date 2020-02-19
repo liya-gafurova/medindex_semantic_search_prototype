@@ -138,7 +138,7 @@ if __name__ == '__main__':
         # sort by em_par.dist
         sorted_list = sort_distance(embeded_paragraphs)
         pars  = list(sorted_list.keys())
-        print('\t '.join(pars[:6]))
+        print('###'.join(pars[:6]))
 
 
     print('my_metric')
