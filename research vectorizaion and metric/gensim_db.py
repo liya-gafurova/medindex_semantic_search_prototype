@@ -21,7 +21,7 @@ def createParser():
     parser.add_argument('--train', default=False) # if false -- search mode / if True -- train model and insert into DB (!!! delete dir manually before new train first)
     parser.add_argument('--articles_dir')
     parser.add_argument('--multiple_files', default=False)
-    parser.add_argument('--gensim_model_name', default= 'test_1article' )
+    parser.add_argument('--gensim_model_name', default= './gensim_models/phys_train.epub_model' )
     parser.add_argument('--query', default='Which are the key exclusion criteria for patients with subacute phase of ischaemic or haemorrhagic stroke')
 
     return  parser

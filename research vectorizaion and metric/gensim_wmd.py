@@ -3,14 +3,21 @@ import argparse
 import os
 import random
 from scipy.spatial.distance import cosine
-from nltk import  sent_tokenize, word_tokenize
+from nltk import sent_tokenize, word_tokenize, download
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from helpers import parse_epub_content
 import logging
 import collections
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 import gensim
-import gensim.downloader as api
+from gensim.similarities import WmdSimilarity
+from nltk import word_tokenize
+from nltk.corpus import stopwords
+from nltk import download
+download('stopwords')  # Download stopwords list.
+stop_words = stopwords.words('english')
+download('punkt')  # Download data for tokenizer.
+
 DOC_NAME = 'phys_train.epub'
 q1 = 'Which are the key exclusion criteria for patients with subacute phase of ischaemic or haemorrhagic stroke'
 DOC_NAME_613 = '6132876.epub'
@@ -23,25 +30,7 @@ q5 = 'What is recommended next step for those patients who do not have clearly r
 DOC_DIARRHEA = 'Travelers_diarrhea.epub'
 q6 = 'What is the recommended first-line agent for mild TD?'
 
-
-class EmbededParagraph:
-    def __init__(self, paragraph : str , embed  ):
-        self.paragraph = paragraph
-        self.embedding = embed
-    def find_distance(self,query_embed, metric  = 'scipy_cosine', model = None ):
-        # scipy...cosine  0 - параллельны, 1 - перпендикулярны
-        if metric == 'scipy_cosine':
-            self.dist  = cosine(self.embedding, query_embed)
-        else:
-            raise Exception('not implemented metric')
-
-def sort_distance(list_em_paragraphs : list ):
-    dist_dict = {}
-    for em_par in list_em_paragraphs:
-        dist_dict[em_par.paragraph] = em_par.dist
-    sorted_dict = { par: dist for par, dist in sorted(dist_dict.items(), key= lambda item: item[1] ) }
-    return sorted_dict
-
+NUM_BEST = 5
 
 
 def createParser():
@@ -49,9 +38,9 @@ def createParser():
     parser.add_argument('--train', default=False) # if false -- search mode / if True -- train model and insert into DB (!!! delete dir manually before new train first)
     parser.add_argument('--articles_dir')
     parser.add_argument('--multiple_files', default=False)
-    parser.add_argument('--gensim_model_name', default= DOC_NAME+'_model' )
-    parser.add_argument('--query', default=q1)
-    parser.add_argument('--doc_name' , default=DOC_NAME)
+    parser.add_argument('--gensim_model_name', default= '../gensim_models/'+ DOC_DIARRHEA+'_model' )
+    parser.add_argument('--query', default=q2)
+    parser.add_argument('--doc_name' , default=DOC_DIARRHEA)
     return  parser
 
 def train(paragraphs_list, fname):
@@ -101,6 +90,12 @@ def train(paragraphs_list, fname):
     model.save(os.path.join(fname))
     return model
 
+def preprocess(doc):
+    doc = doc.lower()  # Lower the text.
+    doc = word_tokenize(doc)  # Split into words.
+    doc = [w for w in doc if not w in stop_words]  # Remove stopwords.
+    doc = [w for w in doc if w.isalpha()]  # Remove numbers and punctuation.
+    return doc
 
 if __name__ == '__main__':
     parser = createParser()
@@ -120,25 +115,40 @@ if __name__ == '__main__':
         for section in doc['sections']:
             paragraphs.extend(section['paragraphs'])
 
+
     if namespase.train:
         train(paragraphs, namespase.gensim_model_name)
 
 
     else:
         model_pretrained = Doc2Vec.load(namespase.gensim_model_name)
-        em_query  = model_pretrained.infer_vector(word_tokenize(namespase.query))
-
-        embeded_paragraphs = []
-        for paragraph in paragraphs:
-            em = model_pretrained.infer_vector(word_tokenize(paragraph))
-            em_par = EmbededParagraph(paragraph, em)
-            em_par.find_distance(em_query , metric=  'scipy_cosine', model = model_pretrained ) #  'scipy_cosine' 'wmd'
-            embeded_paragraphs.append(em_par)
-
-        # sort by em_par.dist
-        sorted_list = sort_distance(embeded_paragraphs)
-        pars  = list(sorted_list.keys())
-        print('###'.join(pars[:6]))
 
 
-    print('my_metric')
+        paragraphs2 = []
+        paragraphs2 = list(map(preprocess, paragraphs))
+
+        # WMD
+
+        instance = WmdSimilarity(paragraphs2, model_pretrained, num_best=len(paragraphs))
+        sent = namespase.query
+        query = preprocess(sent)
+
+        sims = instance[query]  # A query is simply a "look-up" in the similarity class.
+
+        # Print the query and the retrieved documents, together with their similarities.
+        print ('Query:')
+        print (sent)
+        best = []
+        all_scored = []
+        count = 0
+        for i in range(len(sims)):
+            if count <= NUM_BEST:
+                best.append(paragraphs[sims[i][0]])
+                count += 1
+            all_scored.append(paragraphs[sims[i][0]])
+
+        print ('\t '.join(best))
+
+        print('\n\n')
+        print('\n '.join(all_scored))
+    print('final')
