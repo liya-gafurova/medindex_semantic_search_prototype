@@ -36,7 +36,7 @@ NUM_BEST = 5
 def createParser():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', default=False) # if false -- search mode / if True -- train model and insert into DB (!!! delete dir manually before new train first)
-    parser.add_argument('--articles_dir', default='/home/lgafurova/Documents/projects/medicine/medindex_semantic_search_prototype/texts/')
+    parser.add_argument('--articles_dir')
     parser.add_argument('--multiple_files', default=False)
     parser.add_argument('--gensim_model_name', default= DOC_DIARRHEA+'_model' )
     parser.add_argument('--query', default=q2)

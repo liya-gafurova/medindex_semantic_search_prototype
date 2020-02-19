@@ -1,9 +1,7 @@
 import argparse
 import logging
 import os
-
 from flair.data import Sentence
-from nltk import sent_tokenize
 from scipy.spatial.distance import cosine
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -41,12 +39,15 @@ def sort_distance(list_em_paragraphs : list ):
         dist_dict[em_par.paragraph] = em_par.dist
     return { par: dist for par, dist in sorted(dist_dict.items(), key= lambda item: item[1] ) }
 
-
+def make_embed(document: str):
+    document_sentence = Sentence(document)
+    document_embeddings.embed(document_sentence)
+    return  document_sentence.get_embedding().detach().numpy()
 
 def createParser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--train', default=False) # if false -- search mode / if True -- train model and insert into DB (!!! delete dir manually before new train first)
-    parser.add_argument('--articles_dir', default='/home/lgafurova/Documents/projects/medicine/medindex_semantic_search_prototype/texts/')
+    parser.add_argument('--train', default=False)
+    parser.add_argument('--articles_dir')
     parser.add_argument('--multiple_files', default=False)
     parser.add_argument('--gensim_model_name', default= DOC_NAME_613+'_model' )
     parser.add_argument('--query', default=q2)
@@ -87,14 +88,12 @@ if __name__ == '__main__':
         pooling='max',
         fine_tune_mode='none'
     )
-    query_sent = Sentence(namespase.query)
-    document_embeddings.embed(query_sent)
-    query_embed = query_sent.get_embedding().detach().numpy()
+
+    query_embed = make_embed(namespase.query)
     em_pars = []
     for paragraph in paragraphs:
-        sentence = Sentence(paragraph)
-        document_embeddings.embed(sentence)
-        embs = sentence.get_embedding().detach().numpy()
+
+        embs = make_embed(paragraph)
         em_par = EmbededParagraph(paragraph, embs)
         em_par.find_distance(query_embed)
         em_pars.append(em_par)
