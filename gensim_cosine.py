@@ -32,11 +32,6 @@ class EmbededParagraph:
         # scipy...cosine  0 - параллельны, 1 - перпендикулярны
         if metric == 'scipy_cosine':
             self.dist  = cosine(self.embedding, query_embed)
-        elif metric == 'wmd':
-
-            distance = model.wmdistance(self.embedding, query_embed)
-            print('distance = %.4f' % distance)
-            self.dist =distance
         else:
             raise Exception('not implemented metric')
 
@@ -137,7 +132,7 @@ if __name__ == '__main__':
         for paragraph in paragraphs:
             em = model_pretrained.infer_vector(word_tokenize(paragraph))
             em_par = EmbededParagraph(paragraph, em)
-            em_par.find_distance(em_query , metric=  'wmd', model = model_pretrained ) #  'scipy_cosine' 'wmd'
+            em_par.find_distance(em_query , metric=  'scipy_cosine', model = model_pretrained ) #  'scipy_cosine' 'wmd'
             embeded_paragraphs.append(em_par)
 
         # sort by em_par.dist

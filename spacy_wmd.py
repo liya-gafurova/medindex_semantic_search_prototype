@@ -1,11 +1,11 @@
 import spacy
-import wmd
+import gensim_wmd
 
 from flair.embeddings import ELMoEmbeddings
 from flair.embeddings import WordEmbeddings, FlairEmbeddings, DocumentPoolEmbeddings,  StackedEmbeddings, Sentence
 from aquiladb import AquilaClient as acl
 from nltk import sent_tokenize
-from wmd import WMD
+from gensim_wmd import WMD
 
 from helpers import parse_epub_content
 
